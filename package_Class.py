@@ -257,7 +257,7 @@ class FeedForward:
 
 class PID_Controller:
 
-    def __init__(self,S:Simulation,Kc,Ti,Td,alpha,MVMin,MVMax,OLP,ManFF:bool):
+    def __init__(self,S:Simulation,Kc,Ti,Td,alpha,MVMin,MVMax,OLP:bool,ManFF:bool):
         
         self.S = S
         self.Kc = Kc
