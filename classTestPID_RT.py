@@ -22,14 +22,14 @@ from package_Class import Simulation,Path,FirstOrder,SecondOrderPlusDelay,LeadLa
 
 
 #Simulation Instance
-SIM = Simulation(2000,1,26,True,'EXP_RESP_TO_DV_FF_AUTOM_2')
+SIM = Simulation(2000,1,26,True,'SIM_FIRST')
 
 # Graph Instance
-G = Graph(SIM,'PID Control_')
+G = Graph(SIM,'PID Control_FIRST')
 
 # Path
-SP = Path(SIM,{0: 50, SIM.TSim: 50})
-DV = Path(SIM,{0: 50, 800 : 40, 1400 : 60, SIM.TSim: 60})
+SP = Path(SIM,{0: 50, 1000 : 60, SIM.TSim: 50})
+DV = Path(SIM,{0: 50, SIM.TSim: 60})
 MAN = Path(SIM,{0: 0, SIM.TSim: 0})
 MANV = Path(SIM,{0: 50, SIM.TSim: 50})
 
@@ -41,8 +41,8 @@ D = FirstOrder(SIM,0.6156105636473335,387.0591022229922, 5.419428855220769,50,0)
 # Feed Forward
 
 FF = FeedForward(SIM,P,D,True)
-PID = PID_Controller(SIM,1.69,141,5,2,0,100,False,True)
-PID.IMC_tuning(P,0.4,'H')
+PID = PID_Controller(SIM,20,0.1,1,2,0,100,False,True)
+#PID.IMC_tuning(P,0.4,'H')
 
 
 
