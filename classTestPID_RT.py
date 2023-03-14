@@ -22,10 +22,10 @@ from package_Class import Simulation,Path,FirstOrder,SecondOrderPlusDelay,LeadLa
 
 
 #Simulation Instance
-SIM = Simulation(2000,1,26,True,'SIM_FIRST')
+SIM = Simulation(2000,1,26,False,'EXP_FIRST')
 
 # Graph Instance
-G = Graph(SIM,'PID Control_FIRST')
+G = Graph(SIM,'PID Control_FIRST_EXP')
 
 # Path
 SP = Path(SIM,{0: 50, 1000 : 60, SIM.TSim: 50})
