@@ -22,7 +22,7 @@ from package_Class import Simulation,Path,FirstOrder,SecondOrderPlusDelay,LeadLa
 
 
 #Simulation Instance
-SIM = Simulation(2000,1,26,False,'EXP_FIRST')
+SIM = Simulation(2000,1,26,True,'EXP_FIRST')
 
 # Graph Instance
 G = Graph(SIM,'PID Control_FIRST_EXP')
