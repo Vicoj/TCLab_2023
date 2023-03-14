@@ -1,0 +1,79 @@
+STEP_MV_TO_PV
+
+SP = Path(SIM,{0: 50, SIM.TSim: 50})
+DV = Path(SIM,{0: 50, SIM.TSim: 50})
+MAN = Path(SIM,{0: 1, SIM.TSim: 1})
+MANV = Path(SIM,{0: 50, 700 : 40, 1500 : 60, SIM.TSim: 60})
+
+FF = FeedForward(SIM,P,D,False)
+PID = PID_Controller(SIM,1.69,141,5,2,0,100,True,False)
+
+STEP_DV_TO_PV
+
+SP = Path(SIM,{0: 50, SIM.TSim: 50})
+DV = Path(SIM,{0: 50,900 : 70, SIM.TSim: 70})
+MAN = Path(SIM,{0: 1, SIM.TSim: 1})
+MANV = Path(SIM,{0: 50, SIM.TSim: 50})
+
+FF = FeedForward(SIM,P,D,False)
+PID = PID_Controller(SIM,1.69,141,5,2,0,100,True,False)
+
+CLOSED_LOOP_SP_STEP
+
+SP = Path(SIM,{0: 50, 1000: 60, SIM.TSim: 60})
+DV = Path(SIM,{0: 50, SIM.TSim: 50})
+MAN = Path(SIM,{0: 0, SIM.TSim: 0})
+MANV = Path(SIM,{0: 0, SIM.TSim: 0})
+
+RESPONSE_TO_DV_NO_FF_MANUAL
+
+SP = Path(SIM,{0: 50, SIM.TSim: 50})
+DV = Path(SIM,{0: 40, 1200 : 60, SIM.TSim: 60})
+MAN = Path(SIM,{0: 1, SIM.TSim: 1})
+MANV = Path(SIM,{0: 30, SIM.TSim: 30})
+
+FF = FeedForward(SIM,P,D,False)
+PID = PID_Controller(SIM,1.69,141,5,2,0,100,False,False)
+
+RESPONSE_TO_DV_FF_MANUAL
+
+SP = Path(SIM,{0: 50, SIM.TSim: 50})
+DV = Path(SIM,{0: 50, 1000 : 60, SIM.TSim: 60})
+MAN = Path(SIM,{0: 1, SIM.TSim: 1})
+MANV = Path(SIM,{0: 50, SIM.TSim: 50})
+
+FF = FeedForward(SIM,P,D,True)
+PID = PID_Controller(SIM,1.69,141,5,2,0,100,False,True)
+
+
+RESP_TO_DV_NO_FF_AUTOM
+
+SP = Path(SIM,{0: 50, SIM.TSim: 50})
+DV = Path(SIM,{0: 50, 800 : 40, 1400 : 60, SIM.TSim: 60})
+MAN = Path(SIM,{0: 0, SIM.TSim: 0})
+MANV = Path(SIM,{0: 50, SIM.TSim: 50})
+
+FF = FeedForward(SIM,P,D,False)
+PID = PID_Controller(SIM,1.69,141,5,2,0,100,False,False)
+
+RESP_TO_DV_FF_AUTOM
+
+SP = Path(SIM,{0: 50, SIM.TSim: 50})
+DV = Path(SIM,{0: 50, 800 : 40, 1400 : 60, SIM.TSim: 60})
+MAN = Path(SIM,{0: 0, SIM.TSim: 0})
+MANV = Path(SIM,{0: 50, SIM.TSim: 50})
+
+FF = FeedForward(SIM,P,D,True)
+PID = PID_Controller(SIM,1.69,141,5,2,0,100,False,True)
+
+RESP_TO_DV_FF_AUTOM_2
+
+Activation de MVP MVI MVD 
+
+SP = Path(SIM,{0: 50, SIM.TSim: 50})
+DV = Path(SIM,{0: 50, 800 : 40, 1400 : 60, SIM.TSim: 60})
+MAN = Path(SIM,{0: 0, SIM.TSim: 0})
+MANV = Path(SIM,{0: 50, SIM.TSim: 50})
+
+FF = FeedForward(SIM,P,D,True)
+PID = PID_Controller(SIM,1.69,141,5,2,0,100,False,True)
