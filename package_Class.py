@@ -441,7 +441,7 @@ class Graph:
         
 
     def show(self,signals:list(),binSignals:list(),varVals:list()):
-        self.fig, self.ax = plt.subplots(3, gridspec_kw={'height_ratios': [1, 3,3]})
+        self.fig, self.ax = plt.subplots(3, gridspec_kw={'height_ratios': [1,3,3]})
         self.signals = signals
         self.binSignals = binSignals
         self.varVals = varVals
@@ -466,7 +466,7 @@ class Graph:
 
         self.ax[2].set_ylabel('Pourcentage de Chauffe [%]')
         self.ax[2].set_xlabel('Temps [s]')
-        #self.ax[1].set_ylim(-10,120)
+        #self.ax[2].set_ylim([0, 100])
         self.ax[2].legend(loc='best')
 
         plt.subplots_adjust(left=0.05, bottom=0.05, right = 0.8,top=0.95,hspace=0.064)
