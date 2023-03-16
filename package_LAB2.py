@@ -100,7 +100,7 @@ def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,M
     if len(MVI)==0:
         MVI.append((Kc*Ts/Ti)*E[-1]) #tjrs initialiser avec EBD
     else:
-        if method=='TRAP-TRAP':
+        if method.split("-")[0]=='TRAP':
             MVI.append(MVI[-1]+(0.5*Kc*Ts/Ti)*(E[-1]+E[-2]))
         else:
             MVI.append(MVI[-1]+(Kc*Ts/Ti)*E[-1]) #EBD
@@ -109,7 +109,7 @@ def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,M
     if len(MVD)==0:
         MVD.append((Kc*Td/(Tfd+Ts))*(E[-1]-E[-2]))
     else:
-        if method=='TRAP-TRAP':
+        if method.split("-")[1]=='TRAP':
             MVD.append((Tfd-(Ts/2))/(Tfd+(Ts/2))*MVD[-1]+(Kc*Td/(Tfd+(Ts/2)))*(E[-1]-E[-2]))
         else:
             MVD.append((Tfd/(Tfd+Ts))*MVD[-1]+(Kc*Td/(Tfd+Ts))*(E[-1]-E[-2]))
