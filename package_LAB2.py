@@ -87,7 +87,7 @@ def Leadlag(MV,Kp,Tlead,Tlag,Ts,PV,PVInit=0,method='EBD'):
         PV.append(Kp*MV[-1])
 #-----------------------------------     
 
-def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,ManFF=False,PVInit=0,method='EBD-EBD'):
+def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,ManFF=False,PVInit=0,method='TRAP-TRAP'):
     Tfd=alpha*Td
     if len(PV)==0:
         E.append(SP[-1]-PVInit)
@@ -114,62 +114,24 @@ def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,M
         else:
             MVD.append((Tfd/(Tfd+Ts))*MVD[-1]+(Kc*Td/(Tfd+Ts))*(E[-1]-E[-2]))
 
-    #Vecteur MV
-    MV.append(MVP+MVI+MVD)
+    #calcul saturation, anti emballement, reset saturation integrateur
 
-
-
-
-
-
- #--------------------------------------------------- ma version   
-    if method=='TRAP-TRAP':
-        MVP.append(Kc*E[-1])
-        if len(MVI)==0:
-            MVI.append(((Kc*Ts)/(2*Ti)))*(E[-1]+E[-2])
-        else:
-            MVI.append(MVI[-1]+((Kc*Ts)/(2*Ti)))*(E[-1]+E[-2])
-        if len(MVD)==0:
-            MVD.append(0)
-        else:
-           MVD.append( ((Tfd-(Ts/2))/(Tfd+Ts/2))*MVD[-1]+( (Kc*Td)/(Tfd+(Ts/2)) )*E[-1]-E[-2])
-
+    #mode automatique
+    if(not Man[-1]):
+        #saturation
+        if(MVP[-1]+MVI[-1]+MVD[-1] + MVFF[-1] < MVMin) :
+            MVI[-1] = MVMin - MVP[-1] - MVD[-1] - MVFF[-1] #ecrasement valeur de MV
         
-        if MVP[-1]+MVI[-1]+MVD[-1]>MVMax:
-            MVI[-1]=MVMax-MVP[-1]-MVD[-1]
-        elif MVP[-1]+MVI[-1]+MVD[-1]<MVMin:
-            MVI[-1]=MVMin-MVP[-1]-MVD[-1]
-        
+        elif (MVP[-1]+MVI[-1]+MVD[-1] + MVFF[-1]>=MVMax) :
+            MVI[-1] = MVMax - MVP[-1] - MVD[-1] - MVFF[-1]
+        MV.append(MVP[-1]+MVI[-1]+MVD[-1])
 
-        if Man[-1]:
-            if ManFF:
-                MVI[-1]=MVMan[-1]-MVP[-1]-MVD[-1]
-            else:
-                MVI[-1]=MVMan[-1]-MVP[-1]-MVD[-1]
-    elif method=='EBD-EBD':
-        MVP.append(Kc*E[-1])
-        if len(MVI)==0:
-            MVI.append(Kc*(Ts/Ti)*E[-1])
+    #mode manuel
+    else :
+        if(not ManFF):
+            MVI[-1]=MVMan[-1]-MVP[-1]-MVD[-1]-MVFF[-1]
         else:
-            MVI.append(MVI[-1]+Kc*(Ts/Ti)*E[-1])
-        if len(MVD)==0:
-            MVD.append(0)
-        else:
-            MVD.append((Tfd/(Tfd+Ts))*MVD[-1]+(Kc*Td/(Tfd+Ts))*(E[-1]-E[-2]))
-
-        
-        if MVP[-1]+MVI[-1]+MVD[-1]>MVMax:
-            MVI[-1]=MVMax-MVP[-1]-MVD[-1]
-        elif MVP[-1]+MVI[-1]+MVD[-1]<MVMin:
-            MVI[-1]=MVMin-MVP[-1]-MVD[-1]
-        
-
-        if Man[-1]:
-            if ManFF:
-                MVI[-1]=MVMan[-1]-MVP[-1]-MVD[-1]
-            else:
-                MVI[-1]=MVMan[-1]-MVP[-1]-MVD[-1]
-
-
+            MVI[-1]=MVMan[-1]-MVP[-1]-MVD[-1]
 
         MV.append(MVP[-1]+MVI[-1]+MVD[-1])
+    
