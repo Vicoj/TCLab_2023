@@ -88,8 +88,46 @@ def Leadlag(MV,Kp,Tlead,Tlag,Ts,PV,PVInit=0,method='EBD'):
 #-----------------------------------     
 
 def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,ManFF=False,PVInit=0,method='TRAP-TRAP'):
+    """"
+    The function "PID_RT3 needs to be included in a "for or while loop"
+
+    :SP: SP (or SetPOint) vector
+    :PV: PV (or Process Value) vector
+    :Man: Man (or Manual controller mode) vector (True or False)
+    :MVMan: MVMan (or Manual value for MV) vector
+    :MVFF: MVFF (or Feedforward) vector
+
+    :KC: controller gain
+    :Ti: integral time constant [s]
+    :Td: Derivative time constant [s]
+    :alpha: Tfd=alpha*Td where Thd is the derivative filter time constant[s]
+    :Ts: sampling period [s]
+
+    :MVMin: minimum value for MV (used for saturation and anti wind-up)
+    :MVMax: maximum value for MV (used for saturation and anti wind-up)
+
+    :MV: MV (or Manipulated Value) vector
+    :MVP: MVP (or Proportional part of MV) vector
+    :MVI: MVI (or Integral part of MV) vector
+    :MVD: MVD (or Derivative part of MV) vector
+    :E: E (or control Error) vector
+
+    :ManFF: Activated FF in manual mode (optimal:default boolean value is False)
+    :PVInit: Initial value for PV (optional:default value is 0): used if PID_RT is ran firts in the sequence and no value of PV is available yet.
+
+    :method: discretisation method (optional:default value is 'EBD')
+    EBD-EBD: EBD for integral action and EBD for derivative action
+    EBD-TRAP: EBD for integral action and TRAP for derivative action
+    TRAP-TRAP: TRAP for integral action and TRAP for derivative action
+    TRAP-EBD: TRAP for integral action and EBD for derivative action
+
+    The function "PID_RT" appends new values to the vectors "MV","MV","MVI" and"MVD".
+    The appeded values are based on the PID algorithm, the controller mode, and feedforward.
+    Note that saturationof "MV" within the limits[MVMin,MVMax] is implemented with andi wind-up
+    """
     Tfd=alpha*Td
     if len(PV)==0:
+        PV.append(PVInit)
         E.append(SP[-1]-PVInit)
     else:
         E.append (SP[-1]-PV[-1])
@@ -107,12 +145,21 @@ def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,M
 
     #Vecteur MVD
     if len(MVD)==0:
-        MVD.append((Kc*Td/(Tfd+Ts))*(E[-1]-E[-2]))
-    else:
-        if method.split("-")[1]=='TRAP':
-            MVD.append((Tfd-(Ts/2))/(Tfd+(Ts/2))*MVD[-1]+(Kc*Td/(Tfd+(Ts/2)))*(E[-1]-E[-2]))
+        if len(E)==1:
+            MVD.append((Kc*Td/(Tfd+Ts))*(E[-1]))
         else:
-            MVD.append((Tfd/(Tfd+Ts))*MVD[-1]+(Kc*Td/(Tfd+Ts))*(E[-1]-E[-2]))
+            MVD.append((Kc*Td/(Tfd+Ts))*(E[-1]-E[-2]))
+    else:
+        if len(E)==1:
+            if method.split("-")[1]=='TRAP':
+                MVD.append((Tfd-(Ts/2))/(Tfd+(Ts/2))*MVD[-1]+(Kc*Td/(Tfd+(Ts/2)))*(E[-1]))
+            else:
+                MVD.append((Tfd/(Tfd+Ts))*MVD[-1]+(Kc*Td/(Tfd+Ts))*(E[-1]))
+        else:
+            if method.split("-")[1]=='TRAP':
+                MVD.append((Tfd-(Ts/2))/(Tfd+(Ts/2))*MVD[-1]+(Kc*Td/(Tfd+(Ts/2)))*(E[-1]-E[-2]))
+            else:
+                MVD.append((Tfd/(Tfd+Ts))*MVD[-1]+(Kc*Td/(Tfd+Ts))*(E[-1]-E[-2]))
 
     #calcul saturation, anti emballement, reset saturation integrateur
 
