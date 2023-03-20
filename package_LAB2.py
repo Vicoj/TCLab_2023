@@ -181,4 +181,11 @@ def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,M
             MVI[-1]=MVMan[-1]-MVP[-1]-MVD[-1]
 
         MV.append(MVP[-1]+MVI[-1]+MVD[-1])
+#----------------------------------- 
+
+def IMC_TUNNING(Kp,theta,T1,gamma):
+    Ti=T1
+    Tc= gamma*T1 #Tclp
+    Kc=(Ti/(Tc+theta)*Kp)
+    return (Kc,Ti)
     
