@@ -131,6 +131,7 @@ def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,M
         E.append(SP[-1]-PVInit)
     else:
         E.append (SP[-1]-PV[-1])
+    
     #Vecteur MVP
     MVP.append(Kc*E[-1])
 
@@ -161,7 +162,6 @@ def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,M
             else:
                 MVD.append((Tfd/(Tfd+Ts))*MVD[-1]+(Kc*Td/(Tfd+Ts))*(E[-1]-E[-2]))
 
-    #calcul saturation, anti emballement, reset saturation integrateur
 
     #mode automatique
     if(not Man[-1]):
@@ -183,9 +183,15 @@ def PID_RT(SP,PV,Man,MVMan,MVFF,Kc,Ti,Td,alpha,Ts,MVMin,MVMax,MV,MVP,MVI,MVD,E,M
         MV.append(MVP[-1]+MVI[-1]+MVD[-1])
 #----------------------------------- 
 
-def IMC_TUNNING(Kp,theta,T1,gamma):
-    Ti=T1
+def IMC_TUNNING(Kp,theta,T1,gamma,method='FOPDT'):
     Tc= gamma*T1 #Tclp
-    Kc=(Ti/(Tc+theta)*Kp)
-    return (Kc,Ti)
+    if method=='FOPDT':
+        Ti=T1
+        Kc=(Ti/(Tc+theta)*Kp)
+        return (Kc,Ti)
+    elif method=='SOPDT':
+        Ti=T1+(theta/2)
+        Td=(T1*theta)/(2*T1+theta)
+        Kc=(T1+(theta/2))/(Tc+(theta/2)*Kp)
+        return(Kc,Ti,Td)
     
