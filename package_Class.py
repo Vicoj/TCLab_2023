@@ -95,6 +95,10 @@ class FirstOrder:
         self.point_fct = point_fct
         self.PVInit = PVInit
 
+        self.FO_delay = Delay(S,Theta)
+
+
+
         self.PV = []
 
     def RT(self,MV,method):
@@ -133,6 +137,8 @@ class FirstOrder:
         else:
             self.PV.append(self.K*MV[-1])
 
+
+            
 class SecondOrderPlusDelay:
     def __init__(self,S:Simulation,gain,Time,Theta,point_fct):
         self.S = S
@@ -233,7 +239,7 @@ class FeedForward:
         KFF2 = active
 
         #Delay
-        thetaFF = np.max([self.ThetaD-self.ThetaP,0])
+        thetaFF = max(self.ThetaD-self.ThetaP,0)
         self.delayFF = Delay(S,thetaFF)
         
         #leadLag
@@ -244,7 +250,7 @@ class FeedForward:
         
         #Dephasage
         PVFF = DV-self.DV0*np.ones_like(DV)
-        self.delayFF.RT(PVFF) 
+        self.delayFF.RT(PVFF)
     
         self.LL1.RT(self.delayFF.PV,'EBD')
         self.LL2.RT(self.LL1.PV,'EBD')
@@ -257,15 +263,16 @@ class FeedForward:
 
 class PID_Controller:
 
-    def __init__(self,S:Simulation,Kc,Ti,Td,alpha,MVMin,MVMax,OLP:bool,ManFF:bool):
+    def __init__(self,S:Simulation,Kc,Ti,Td,alpha,MVMinMax:list,OLP:bool,ManFF:bool):
         
         self.S = S
         self.Kc = Kc
         self.Ti = Ti
         self.Td = Td
         self.alpha = alpha
-        self.MVMin = MVMin
-        self.MVMax = MVMax
+        self.MVMin = MVMinMax[0]
+        self.MVMax = MVMinMax[1]
+
         self.OLP = OLP
         self.ManFF = ManFF
         self.gamma = 0
@@ -291,7 +298,7 @@ class PID_Controller:
 
         if case == "G" :
             self.Kc = P.T/(P.K*Tc+P.Theta)
-            self.Ti = P.T+P.Theta/2
+            self.Ti = P.T
             self.Td = 0
         if case == "H" :
             self.Kc = (P.T+P.Theta/2)/(P.K*Tc+P.Theta/2)
@@ -337,6 +344,7 @@ class PID_Controller:
         if(len(self.MVI)>0):
             self.MVI.append(self.MVI[-1]+(self.Kc*self.S.Ts*self.E[-1])/self.Ti)
         else :
+            #self.MVI.append((self.Kc*(self.S.Ts/self.Ti)*(self.E[-1]*self.E[-2]))
             self.MVI.append(self.S.PVInit)
 
         #calcul MVd
@@ -350,6 +358,9 @@ class PID_Controller:
                     self.MVD.append(( Tfd / (Tfd+self.S.Ts) )*self.MVD[-1] + ( (self.Kc*self.Td) / (Tfd+self.S.Ts) ) *(self.E[-1]-self.E[-2]))
             else :
                 self.MVD.append(self.S.PVInit)
+
+        if(self.Td ==0 ):
+            self.MVD.append(0)
 
         #calcul saturation, anti emballement, reset saturation integrateur
 
