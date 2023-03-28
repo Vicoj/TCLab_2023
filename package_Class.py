@@ -95,7 +95,7 @@ class FirstOrder:
         self.point_fct = point_fct
         self.PVInit = PVInit
 
-        self.FO_delay = Delay(S,Theta)
+        self.FO_delay = Delay(S,self.Theta)
 
 
 
@@ -120,7 +120,10 @@ class FirstOrder:
         The function "FO_RT" appends a value to the output vector "PV".
         The appended value is obtained from a recurrent equation that depends on the discretisation method.
         """    
-
+        # Delay part 
+        self.FO_delay.RT(self.PV)
+        self.PV.append(self.FO_delay.PV[-1])
+        
         if (self.T != 0):
             K = self.S.Ts/self.T
             if len(self.PV) == 0:
@@ -137,6 +140,7 @@ class FirstOrder:
         else:
             self.PV.append(self.K*MV[-1])
 
+        
 
             
 class SecondOrderPlusDelay:
@@ -578,11 +582,12 @@ class Graph:
         The function "Bode" generates the Bode diagram of the process P
         """  
 
+        #Graduation Abssisse
         omega = np.logspace(-4, 4, 10000)
         s = 1j*omega
 
         Tfd = PID.alpha*PID.Td
-        Cs = PID.Kc * ((1/PID.Ti*s)+PID.Td*s/(Tfd*s+1))
+        Cs = PID.Kc * (1+(1/PID.Ti*s)+PID.Td*s/(Tfd*s+1))
 
 
         # FCT TRSF
@@ -602,9 +607,10 @@ class Graph:
 
         Ls = np.multiply(Cs,Ps)
 
-        Db0 = -3
+        Db0 = 0
 
-        Gain_0Dby = np.array([Db0]*len(omega))
+        # On crée les valeurs ligne -3Db
+        Gain_0Dby = np.array([Db0]*len(omega)) 
 
         
     
@@ -613,22 +619,18 @@ class Graph:
         # Gain part
         ax_gain.plot(omega,20*np.log10(np.abs(Ps)),label='P(s)')
         ax_gain.plot(omega,20*np.log10(np.abs(Ls)),label='L(s)')
-        #ax_gain.plot(omega,20*np.log10(np.abs(PGain)),label='Pgain')
-        #if P.Theta > 0:
-        #    ax_gain.plot(omega,20*np.log10(np.abs(Ptheta)),label='Ptheta(s)')
-        #if P.T > 0:
-        #    ax_gain.plot(omega,20*np.log10(np.abs(PLag1)),label='PLag1(s)')
 
-        gain_min = np.min(20*np.log10(np.abs(Ps)/5))
-        gain_max = np.max(20*np.log10(np.abs(Ps)*5))
 
-        ax_gain.plot(omega,Gain_0Dby,label='-3Db',color='k')
+        gain_min = np.min(20*np.log10(np.abs(Ls)/5))
+        gain_max = np.max(20*np.log10(np.abs(Ls)*5))
+
+        ax_gain.plot(omega,Gain_0Dby,label='0Db',color='k')
         ax_gain.plot(np.array([0]*len(Ps)),Gain_0Dby,label='Zero')
         
         ax_gain.set_xlim([np.min(omega), np.max(omega)])
         ax_gain.set_ylim([gain_min, gain_max])
         ax_gain.set_ylabel('Amplitude |P| [db]')
-        ax_gain.set_title('Bode plot of '+type)
+        ax_gain.set_title('Bode plot of Loop Gain')
         ax_gain.legend(loc='best')
         ax_gain.set_xscale("log")
 
@@ -636,24 +638,19 @@ class Graph:
 
         # Phase part
         ax_phase.semilogx(omega, (180/np.pi)*np.unwrap(np.angle(Ps)),label='P(s)')
-        ax_phase.semilogx(omega, (180/np.pi)*np.unwrap(np.angle(Ls)),label='PID(s)')
-        #ax_phase.semilogx(omega, (180/np.pi)*np.unwrap(np.angle(PGain)),label='Pgain')
-        #if P.Theta > 0:    
-        #    ax_phase.semilogx(omega, (180/np.pi)*np.unwrap(np.angle(Ptheta)),label='Ptheta(s)')
-        #if P.T > 0:        
-        #    ax_phase.semilogx(omega, (180/np.pi)*np.unwrap(np.angle(PLag1)),label='PLag1(s)')  
+        ax_phase.semilogx(omega, (180/np.pi)*np.unwrap(np.angle(Ls)),label='Ls(s)')
 
         ax_phase.semilogx(omega,Phase_180y,label='-180°',color='k')
 
         ax_phase.set_xlim([np.min(omega), np.max(omega)])
-        ph_min = np.min((180/np.pi)*np.unwrap(np.angle(Ps))) - 10
-        ph_max = np.max((180/np.pi)*np.unwrap(np.angle(Ps))) + 10
+        ph_min = np.min((180/np.pi)*np.unwrap(np.angle(Ls))) - 10
+        ph_max = np.max((180/np.pi)*np.unwrap(np.angle(Ls))) + 10
 
         ax_phase.set_ylim([np.max([ph_min, -200]), ph_max])
         ax_phase.set_ylabel(r'Phase $\angle P$ [°]')
         ax_phase.legend(loc='best')
 
-        if (type=='PID'):
+        if (type=='Ls'):
             varCalc = Ls
             name = self.S.name + '_' +  type
 
@@ -673,6 +670,16 @@ class Graph:
 
         plt.subplots_adjust(left=0.05, bottom=0.05, right = 0.8,top=0.95,hspace=0.064)
 
+        Kcbox = plt.axes([0.9,0.55 , 0.05, 0.03])
+        textKc =  TextBox(Kcbox, 'Gain PID: ', initial=str(PID.Kc))
+
+        Tibox = plt.axes([0.9,0.5 , 0.05, 0.03])
+        textTi =  TextBox(Tibox, 'Ti PID: ', initial=str(PID.Ti))
+
+        Tdbox = plt.axes([0.9,0.45 , 0.05, 0.03])
+        textTd =  TextBox(Tdbox, 'Td PID: ', initial=str(PID.Td))
+
+    
         if( len(wcx) == 0 and len(tcx) == 0 ):
 
             MGbox = plt.axes([0.9,0.65 , 0.05, 0.03])
@@ -686,6 +693,8 @@ class Graph:
 
             acbox = plt.axes([0.9,0.7 , 0.05, 0.03])
             textAc =  TextBox(acbox, 'Angle ωc: ', initial='None')
+
+            
 
         elif ( len(wcx) == 0):
 
@@ -738,6 +747,8 @@ class Graph:
             textAG =  TextBox(AGbox, 'Marge de Phase [deg °]: ', initial=str(round(phaseMarg,4)))
   
         else:
+            ac = omega[tcx][0]
+            GainMarg = val1[tcx][0]
             
             wc = omega[wcx][0]
             phaseMarg = val3[wcx][0]
