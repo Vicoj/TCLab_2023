@@ -140,53 +140,7 @@ class FirstOrder:
                     self.PV.append((1/(1+K))*self.PV[-1] + (K*self.K/(1+K))*MV[-1])
         else:
             self.PV.append(self.K*MV[-1])
-         
-class SecondOrderPlusDelay:
-    def __init__(self,S:Simulation,gain,Time,Theta,point_fct):
-        self.S = S
-        self.K = gain
-        self.T = Time
-        self.Theta = Theta
-        self.point_fct = point_fct
-
-        self.PV = []
-
-    def RT(self,MV,method):
-
-        """
-        The function "FO_RT" needs to be included in a "for or while loop".
-
-        :MV: input vector
-        :Kp: process gain
-        :T: lag time constant [s]
-        :Ts: sampling period [s]
-        :PV: output vector
-        :PVInit: (optional: default value is 0)
-        :method: discretisation method (optional: default value is 'EBD')
-            EBD: Euler Backward difference
-            EFD: Euler Forward difference
-            TRAP: Trapezoïdal method
-
-        The function "FO_RT" appends a value to the output vector "PV".
-        The appended value is obtained from a recurrent equation that depends on the discretisation method.
-        """    
-
-        if (self.T != 0):
-            K = self.S.Ts/self.T
-            if len(self.PV) == 0:
-                self.PV.append(self.S.PVInit)
-            else:
-                if method == 'EBD':
-                    self.PV.append((1/(1+K))*self.PV[-1] + (K*self.K/(1+K))*MV[-1])
-                elif method == 'EFD':
-                    self.PV.append((1-K)*self.PV[-1] + K*self.K*MV[-2])
-                elif method == 'TRAP':
-                    self.PV.append((1/(2*self.T+self.S.Ts))*((2*self.T-self.S.Ts)*self.PV[-1] + self.K*self.S.Ts*(MV[-1] + MV[-2])))            
-                else:
-                    self.PV.append((1/(1+K))*self.PV[-1] + (K*self.K/(1+K))*MV[-1])
-        else:
-            self.PV.append(self.K*MV[-1])
-
+ 
 class LeadLag:
     def __init__(self,S:Simulation,K,TLead,TLag):
         self.S = S
@@ -288,7 +242,7 @@ class PID_Controller:
         self.MVD = []
         self.E = []
 
-    def IMC_tuning(self,P:FirstOrder, gamma, case:str()):
+    def IMC_tuning(self,P:FirstOrder, gamma, case:str()='G'):
     #theta process
     #Kp gain process
     #T1p = time constant process
