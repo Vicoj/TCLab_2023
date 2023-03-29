@@ -41,7 +41,7 @@ D = FirstOrder(SIM,0.6156105636473335,387.0591022229922, 5.419428855220769,50,0)
 # Feed Forward
 
 FF = FeedForward(SIM,P,D,True)
-PID = PID_Controller(SIM,20,0.1,1,2,0,100,False,True)
+PID = PID_Controller(SIM,20,0.1,1,2,[0,100],False,True)
 #PID.IMC_tuning(P,0.4,'H')
 
 
@@ -157,6 +157,6 @@ varVals = [
 
 ]
 
-G.show([SigVals1,SigVals2,SigSave],SigValsBin,varVals)
-#G.Bode(P,PID,'PID')
+#G.show([SigVals1,SigVals2,SigSave],SigValsBin,varVals)
+G.Bode(P,PID,'PID')
 #G.Bode(P,PID,'P')
