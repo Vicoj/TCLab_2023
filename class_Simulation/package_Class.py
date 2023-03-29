@@ -139,10 +139,7 @@ class FirstOrder:
                     self.PV.append((1/(1+K))*self.PV[-1] + (K*self.K/(1+K))*MV[-1])
         else:
             self.PV.append(self.K*MV[-1])
-
-        
-
-            
+         
 class SecondOrderPlusDelay:
     def __init__(self,S:Simulation,gain,Time,Theta,point_fct):
         self.S = S
