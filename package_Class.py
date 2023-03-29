@@ -17,7 +17,10 @@ import progressbar
 
 class Simulation:
     def __init__(self,TSim,Ts,PVInit,sim:bool,name:str()):
-        self.name = name
+        if (sim):
+            self.name = 'SIM_' + name
+        else:
+            self.name = 'EXP_' + name
         self.TSim = TSim
         self.sim = sim
         self.Ts = Ts
@@ -120,9 +123,6 @@ class FirstOrder:
         The function "FO_RT" appends a value to the output vector "PV".
         The appended value is obtained from a recurrent equation that depends on the discretisation method.
         """    
-        # Delay part 
-        self.FO_delay.RT(self.PV)
-        self.PV.append(self.FO_delay.PV[-1])
         
         if (self.T != 0):
             K = self.S.Ts/self.T
@@ -130,6 +130,7 @@ class FirstOrder:
                 self.PV.append(self.PVInit)
             else:
                 if method == 'EBD':
+                    Null = ((1/(1+K))*self.PV[-1] + (K*self.K/(1+K))*MV[-1])
                     self.PV.append((1/(1+K))*self.PV[-1] + (K*self.K/(1+K))*MV[-1])
                 elif method == 'EFD':
                     self.PV.append((1-K)*self.PV[-1] + K*self.K*MV[-2])
@@ -384,6 +385,63 @@ class PID_Controller:
 
             self.MVFB.append(self.MVP[-1]+self.MVI[-1]+self.MVD[-1])
         
+class P_Controller:
+
+    def __init__(self,S:Simulation,Kc,MVMinMax:list,OLP:bool,ManFF:bool):
+        
+        self.S = S
+        self.Kc = Kc
+
+        self.MVMin = MVMinMax[0]
+        self.MVMax = MVMinMax[1]
+
+        self.OLP = OLP
+        self.ManFF = ManFF
+
+        self.MVMan = []
+
+        self.MVFB = []
+        self.MVP = []
+        self.E = []
+
+
+    def RT(self,SP,PV,method="EBD"):
+        """
+        The function "PID.RT" needs to be included in a "for or while loop".
+        
+        SP : Set Point
+        PV : Processed Value
+        MAN : Manual mode ON/OFF
+        MVMan : Modified value set with Manual mode
+        MVFF : Modified value calculated by the Feed Forward
+        method : discretisation method (optional: default value is 'EBD')
+        
+        The function "PID.RT" appends a value to the following vectors :
+        E, MVp, MVi, MVd, MVFB
+        The appened values correspond to the values computed by a parallel PID controller.
+        If MAN is OFF then the modified value is bounded by MVmin and MVmax. The MVi value is overwritten in order to respect the boundaries.
+        If MAN is ON then the modified value is equal to MVMan. The MVi value is overwritten in order to avoid integrator wind-up.
+        """
+    #calcul de l'erreur SP-PV
+    
+        if(not self.OLP):
+            if(len(PV)==0):
+                self.E.append(SP[-1]-self.S.PVInit)
+            else :
+                self.E.append(SP[-1]-PV[-1])
+        else:
+            self.E.append(SP[-1])
+
+        #calcul de MVp
+
+        self.MVP.append(self.Kc*self.E[-1])
+
+        if (self.MVP[-1] >  self.MVMax):
+            self.MVP[-1] =  self.MVMax
+        if (self.MVP[-1] <  self.MVMin):
+            self.MVP[-1] =  self.MVMin
+        self.MVFB.append(self.MVP[-1])
+
 class Delay:
     def __init__(self,S:Simulation,theta):
         self.S = S
@@ -445,10 +503,10 @@ class Variable:
         self.name = name
 
 class Graph:
-    def __init__(self,S:Simulation,title:str()):
+    def __init__(self,S:Simulation):
 
         self.S = S
-        self.title = title + self.S.name
+        self.title = self.S.name
         
         
 
