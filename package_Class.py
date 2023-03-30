@@ -724,7 +724,7 @@ class Graph:
     def close(self,event):
         plt.close()
 
-    def Bode(self,P:FirstOrder,PID:PID_Controller,type):
+    def Bode(self,P,PID:PID_Controller):
     
         """
         :P: Process as defined by the class "Process".
@@ -750,33 +750,29 @@ class Graph:
         """  
 
         #Graduation Abssisse
-        omega = np.logspace(-4, 4, 10000)
+        omega = np.logspace(-4, 1, 1000)
         s = 1j*omega
 
         Tfd = PID.alpha*PID.Td
-        Cs = PID.Kc * (1+(1/PID.Ti*s)+PID.Td*s/(Tfd*s+1))
 
-
-        # FCT TRSF
-        Ptheta = np.exp(-P.Theta*s)
-        PGain = P.K*np.ones_like(Ptheta)
-        PLag1 = 1/(P.T*s + 1)
-        PLag2 = 1/(1*s + 1)
-        PLead1 = 1*s + 1
-        PLead2 = 1*s + 1
+        # PID TRSF
+        Cs = PID.Kc * (1 + (1/(PID.Ti*s)) + (PID.Td*s)/(Tfd*s+1))
         
-        # Processus
-        Ps = np.multiply(Ptheta,PGain)
-        Ps = np.multiply(Ps,PLag1)
-        Ps = np.multiply(Ps,PLag2)
-        Ps = np.multiply(Ps,PLead1)
-        Ps = np.multiply(Ps,PLead2)
+        if type(P) is FirstOrder:
+            Ps = (P.Kg/(P.T*s + 1)) * np.exp(-P.Theta*s)
+            courbe = 'First Order'
+        if type(P) is SecondOrder:
+            Ps = (P.Kg/((P.T1*s + 1) + (P.T2*s + 1))) * np.exp(-P.Theta*s)
+            courbe = 'Second Order'
+
+        
+
 
         Ls = np.multiply(Cs,Ps)
 
         Db0 = 0
 
-        # On crée les valeurs ligne -3Db
+        # On crée les valeurs ligne 0Db
         Gain_0Dby = np.array([Db0]*len(omega)) 
 
         
@@ -784,15 +780,15 @@ class Graph:
         self.fig, (ax_gain, ax_phase) = plt.subplots(2,1)
 
         # Gain part
-        ax_gain.plot(omega,20*np.log10(np.abs(Ps)),label='P(s)')
-        ax_gain.plot(omega,20*np.log10(np.abs(Ls)),label='L(s)')
+        ax_gain.semilogx(omega,20*np.log10(np.abs(Ps)),label='P(s)')
+        ax_gain.semilogx(omega,20*np.log10(np.abs(Ls)),label='L(s)')
 
 
         gain_min = np.min(20*np.log10(np.abs(Ls)/5))
         gain_max = np.max(20*np.log10(np.abs(Ls)*5))
 
-        ax_gain.plot(omega,Gain_0Dby,label='0Db',color='k')
-        ax_gain.plot(np.array([0]*len(Ps)),Gain_0Dby,label='Zero')
+        ax_gain.semilogx(omega,Gain_0Dby,label='0Db',color='k')
+        ax_gain.semilogx(np.array([0]*len(Ps)),Gain_0Dby,label='Zero')
         
         ax_gain.set_xlim([np.min(omega), np.max(omega)])
         ax_gain.set_ylim([gain_min, gain_max])
@@ -817,21 +813,14 @@ class Graph:
         ax_phase.set_ylabel(r'Phase $\angle P$ [°]')
         ax_phase.legend(loc='best')
 
-        if (type=='Ls'):
-            varCalc = Ls
-            name = self.S.name + '_' +  type
-
-        else :
-            varCalc = Ps
-            name = self.S.name + '_' + type
 
         #Find ωc
-        val1 = 20*np.log10(np.abs(varCalc))
+        val1 = 20*np.log10(np.abs(Ls))
         val2 = Gain_0Dby
         wcx = np.argwhere(np.diff(np.sign(val1 - val2))).flatten()
 
         #Find °c
-        val3 = (180/np.pi)*np.unwrap(np.angle(varCalc))
+        val3 = (180/np.pi)*np.unwrap(np.angle(Ls))
         val4 = Phase_180y
         tcx = np.argwhere(np.diff(np.sign(val3 - val4))).flatten()
 
@@ -861,9 +850,7 @@ class Graph:
             acbox = plt.axes([0.9,0.7 , 0.05, 0.03])
             textAc =  TextBox(acbox, 'Angle ωc: ', initial='None')
 
-            
-
-        elif ( len(wcx) == 0):
+        elif (len(wcx) == 0):
 
             AGbox = plt.axes([0.9,0.6 , 0.05, 0.03])
             textAG =  TextBox(AGbox, 'Marge de Phase [deg °]: ', initial='None')
@@ -874,11 +861,11 @@ class Graph:
             ac = omega[tcx][0]
             GainMarg = val1[tcx][0]
 
-            ax_gain.axvline(ac,color = 'k')
-            ax_gain.scatter(ac,GainMarg,color = 'k')
-            ax_gain.scatter(ac,Db0,color = 'k')
+            ax_gain.axvline(ac,color = 'y')
+            ax_gain.scatter(ac,GainMarg,color = 'r')
+            ax_gain.scatter(ac,Db0,color = 'r')
 
-            ax_phase.axvline(ac,color = 'k')
+            ax_phase.axvline(ac,color = 'y')
             ax_phase.scatter(ac,-180,color = 'k')
             GainMarg = Db0 - GainMarg 
 
@@ -899,12 +886,12 @@ class Graph:
             wc = omega[wcx][0]
             phaseMarg = val3[wcx][0]
 
-            ax_gain.axvline(wc,color = 'k')
+            ax_gain.axvline(wc,color = 'y')
             ax_gain.scatter(wc,Db0,color = 'k')
 
-            ax_phase.axvline(wc,color = 'k')
-            ax_phase.scatter(wc,-180,color = 'k')
-            ax_phase.scatter(wc,phaseMarg,color = 'k')
+            ax_phase.axvline(wc,color = 'y')
+            ax_phase.scatter(wc,-180,color = 'r')
+            ax_phase.scatter(wc,phaseMarg,color = 'r')
             phaseMarg =  phaseMarg + 180
 
             wcbox = plt.axes([0.9,0.75 , 0.05, 0.03])
@@ -920,19 +907,19 @@ class Graph:
             wc = omega[wcx][0]
             phaseMarg = val3[wcx][0]
 
-            ax_gain.axvline(wc,color = 'k')
-            ax_gain.axvline(ac,color = 'k')
+            ax_gain.axvline(wc,color = 'y')
+            ax_gain.axvline(ac,color = 'y')
 
-            ax_gain.scatter(ac,GainMarg,color = 'k')
-            ax_gain.scatter(ac,Db0,color = 'k')
+            ax_gain.scatter(ac,GainMarg,color = 'r')
+            ax_gain.scatter(ac,Db0,color = 'r')
             ax_gain.scatter(wc,Db0,color = 'k')
 
-            ax_phase.axvline(wc,color = 'k')
-            ax_phase.axvline(ac,color = 'k')
+            ax_phase.axvline(wc,color = 'y')
+            ax_phase.axvline(ac,color = 'y')
 
             ax_phase.scatter(ac,-180,color = 'k')
-            ax_phase.scatter(wc,-180,color = 'k')
-            ax_phase.scatter(wc,phaseMarg,color = 'k')
+            ax_phase.scatter(wc,-180,color = 'r')
+            ax_phase.scatter(wc,phaseMarg,color = 'r')
 
 
             GainMarg = Db0 - GainMarg 
@@ -952,10 +939,10 @@ class Graph:
             textAG =  TextBox(AGbox, 'Marge de Phase [deg °]: ', initial=str(round(phaseMarg,4)))
 
         varbox = plt.axes([0.9,0.8 , 0.05, 0.03])
-        textVar =  TextBox(varbox, 'Courbe: ', initial=type)
+        textVar =  TextBox(varbox, 'Courbe: ', courbe)
 
         namebox = plt.axes([0.83, 0.15, 0.1, 0.04])
-        self.text_boxMargin = TextBox(namebox,  'Name ', initial=name)
+        self.text_boxMargin = TextBox(namebox,  'Name ', initial=self.title)
 
         saveax = plt.axes([0.93, 0.15, 0.05, 0.04]) #4-tuple of floats *rect* = [left, bottom, width, height]
         button_save = Button(saveax, 'Save', hovercolor='0.975')
