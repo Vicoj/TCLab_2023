@@ -325,7 +325,7 @@ class PID_Controller:
         self.MVD = []
         self.E = []
 
-    def IMC_tuning(self,P:FirstOrder, gamma, case:str()='G'):
+    def IMC_tuning(self,P, gamma, case:str()='G'):
     #theta process
     #Kp gain process
     #T1p = time constant process
@@ -334,17 +334,25 @@ class PID_Controller:
         self.gamma = gamma
         self.case = case
 
-        Tc = gamma*P.T # 0.2 <gamma< 0.9
+         # 0.2 <gamma< 0.9
 
         if case == "G" :
+            Tc = gamma*P.T
             self.Kc = P.T/(P.Kg*Tc+P.Theta)
             self.Ti = P.T
             self.Td = 0
 
         if case == "H" :
-            self.Kc = (P.T+P.Theta/2)/(P.Kg*Tc+P.Theta/2)
+            Tc = gamma*P.T
+            self.Kc = (P.T+P.Theta/2)/(P.Kg*(Tc+P.Theta/2))
             self.Ti = P.T+P.Theta/2
-            self.Td = (P.T*P.Theta)/(2*Tc+P.Theta)
+            self.Td = (P.T*P.Theta)/(2*P.T+P.Theta)
+
+        if case == "B" :
+            Tc = gamma*P.T1
+            self.Kc = ((P.T1+P.T2)/(P.Kg*(Tc + P.Theta)))
+            self.Ti = P.T1 + P.T2
+            self.Td = (P.T1*P.T2)/(P.T1+P.T2)
 
 
         
@@ -750,7 +758,7 @@ class Graph:
         """  
 
         #Graduation Abssisse
-        omega = np.logspace(-4, 1, 1000)
+        omega = np.logspace(-4, 1, 10000)
         s = 1j*omega
 
         Tfd = PID.alpha*PID.Td
