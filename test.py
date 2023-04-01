@@ -1,4 +1,3 @@
-
 from signal import signal
 from tokenize import Single
 import numpy as np
@@ -25,21 +24,36 @@ from package_Class import *
 
 
 
-
-SIM = Simulation(1000,1,20,True,'CPL_PID_FF_MAN_MODE')
+SIM = Simulation(2000,1,20,False,'CPL_FF_MAN_MODE_ALL')
 G = Graph(SIM)
 
-SP = Path(SIM,{0:50, 250:50 , SIM.TSim: 50})
-DV = Path(SIM,{0:30 ,500:70,SIM.TSim: 70})
-MAN = Path(SIM,{0:1 ,50: 0,500: 0, SIM.TSim: 0})
-MANV = Path(SIM,{0: 70,400:100,600:30, SIM.TSim: 100})
+SP = Path(SIM,{0:40, 500:90 , 1000:50 , SIM.TSim:50})
+DV = Path(SIM,{0:70 , 750:30 , 1000:30 , 1500:50 , SIM.TSim: 50})
+MAN = Path(SIM,{0:1 , 50:0 , 1750:1, SIM.TSim:1})
+MANV = Path(SIM,{0: 70,400:100,600:30, SIM.TSim: 30})
 
-P = FirstOrder(SIM,0.6,200,1,50,SIM.PVInit)
-D = FirstOrder(SIM,0.4,152,29,50,0)
+'''
+-MV
+K: 0.6380496617368366
+T1: 194.68042676186926
+T2: 4.132530123359063e-11
+theta: 5.142082869041576
+-DV
+K: 0.41729187227800746
+T1: 165.26136274440154
+T2: 17.712030277318842
+theta: 7.447021274687229
+'''
+
+P = SecondOrder(SIM,0.64,194.7,4.1325e-11,5.14,50,SIM.PVInit)
+D = SecondOrder(SIM,0.42,165.26,17.71,7.45,50,0)
 
 FF = FeedForward(SIM,P,D,True)
-PID = PID_Controller(SIM,5,200,0,0.14,[0,100],False,False)
-#PID.IMC_tuning(P,0.1,'H')
+
+PID = PID_Controller(SIM,5,100,1,0.14,[0,100],False,False)
+PID.IMC_tuning(P,0.5,'B')
+
+
 
 if(SIM.sim == True):
     t = []
@@ -51,10 +65,11 @@ if(SIM.sim == True):
         MAN.RT(t)
         MANV.RT(t)
 
-        FF.RT(DV.Signal) # FeedForward
+        FF.RT(DV.Signal)
         PID.RT(SP.Signal,SIM.PV,MAN.Signal,MANV.Signal,FF.MVFF,'EBD-EBD')
 
         SIM.MV.append(PID.MVFB[-1]+FF.MVFF[-1])
+
 
         P.RT(SIM.MV,'EBD')
         D.RT(DV.Signal,'EBD')
@@ -82,9 +97,9 @@ if(SIM.sim == False):
             MAN.RT(SIM.t)
             MANV.RT(SIM.t)
 
-            FF.RT(DV.Signal) # FeedForward
-            PID.RT(SP.Signal,SIM.PV,MAN.Signal,MANV.Signal,[0],'EBD-EBD')
-    
+            FF.RT(DV.Signal)
+            PID.RT(SP.Signal,SIM.PV,MAN.Signal,MANV.Signal,FF.MVFF,'EBD-EBD')
+
             SIM.MV.append(PID.MVFB[-1]+FF.MVFF[-1])
 
             LABVal.RT(SIM.MV,DV.Signal,D.point_fct)
@@ -112,10 +127,12 @@ SigVals2 = [
     Signal(SIM.MV,'MV','-g'),
     Signal(DV.Signal,'DV','-k'),
     Signal(PID.MVFB,'MVFB','-y'),
-    Signal(FF.MVFF,'MVFF','-r'),
-    Signal(PID.MVP,'MVP',':g'),
-    Signal(PID.MVI,'MVI',':y'),
-    Signal(PID.MVD,'MVD',':m'),
+    Signal(FF.MVFF,'MVFF','-m'),
+
+    #Signal(PID.MVP,'MVP',':g'),
+    #Signal(PID.MVI,'MVI',':y'),
+    #Signal(PID.MVD,'MVD',':m'),
+#
 ]
 
 # Signaux enregistrer dans le .txt
@@ -127,6 +144,7 @@ SigSave = [
     Signal(SP.Signal,'SP',':m'),
     Signal(SIM.PV,'PV',':m'),
     Signal(DV.Signal,'DV',':m'),
+    Signal(MAN.Signal,'Man','-k'),
 
 ]
 
@@ -138,25 +156,22 @@ varVals = [
 
     Variable(PID.OLP,'Open Loop'),
     Variable(PID.ManFF,'Man FF'),
+    Variable(FF.active,'FF Enabled'),
 
+    Variable(0,'IMC Case B'),
     Variable(PID.Kc,'Kc PID'),
     Variable(PID.Td,'Td PID'),
     Variable(PID.Ti,'Ti PID'),
 
-    Variable(FF.active,'FF Enabled'),
-    Variable(FF.T1p,'TLead P(s)'),
-    Variable(FF.T2p,'TLag P(s)'),
-    Variable(FF.T1d,'TLead D(s)'),
-    Variable(FF.T2d,'TLag D(s)'),
-
     Variable(P.Kg,'P(s) Gain K'),
-    #Variable(P.T,'P(s) Time T'),
+    Variable(P.T1,'P(s) Time T1'),
+    Variable(P.T2,'P(s) Time T2'),
     Variable(P.Theta,'P(s) Theta θ'),
 
     Variable(D.Kg,'D(s) Gain K'),
-    #Variable(D.T,'D(s) Time T'),
+    Variable(D.T1,'D(s) Time T1'),
+    Variable(D.T2,'D(s) Time T2'),
     Variable(D.Theta,'D(s) Theta θ'),
 ]
 
 G.show([SigVals1,SigVals2,SigSave],SigValsBin,varVals)
-G.Bode(P,PID)
