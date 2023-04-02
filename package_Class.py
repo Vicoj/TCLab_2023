@@ -643,6 +643,9 @@ class Graph:
             self.ax[0].step(self.S.t,bin.Signal,bin.color,linewidth=2,label=bin.name,where='post')
         self.ax[0].set_ylabel('Valeurs Binaires (On/Off)')
         self.ax[0].set_xlabel('Temps [s]')
+        self.ax[0].grid(color = 'gray', linestyle = '--', linewidth = 0.3)
+        self.ax[0].set_ylim(ymin=-0.1,ymax=1.1)
+
         self.ax[0].set_title(self.title)
         self.ax[0].legend(loc='best')
 
@@ -651,7 +654,8 @@ class Graph:
             self.ax1, =self.ax[1].step(self.S.t,signal.Signal,signal.color,linewidth=2,label=signal.name,where='post')
         self.ax[1].set_ylabel('Temperature [°C]')
         self.ax[1].set_xlabel('Temps [s]')
-        #self.ax[1].set_ylim(-10,120)
+        #self.ax[1].set_ylim(bottom=-10,top=110,auto=True)
+        self.ax[1].grid(color = 'gray', linestyle = '--', linewidth = 0.3)
         self.ax[1].legend(loc='best')
 
         for signal in signals[1]:
@@ -659,7 +663,9 @@ class Graph:
 
         self.ax[2].set_ylabel('Pourcentage de Chauffe [%]')
         self.ax[2].set_xlabel('Temps [s]')
-        #self.ax[2].set_ylim([0, 100])
+        self.ax[2].set_ylim(ymin=-10,ymax=110)
+        self.ax[2].grid(color = 'gray', linestyle = '--', linewidth = 0.3)
+
         self.ax[2].legend(loc='best')
 
         plt.subplots_adjust(left=0.05, bottom=0.05, right = 0.8,top=0.95,hspace=0.064)

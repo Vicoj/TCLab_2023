@@ -141,6 +141,7 @@ SigSave = [
     Signal(PID.MVP,'MVP','-b'),
     Signal(PID.MVI,'MVI','-b'),
     Signal(PID.MVD,'MVD','-b'),
+    Signal(FF.MVFF,'MV_FF','-b'),
     Signal(SP.Signal,'SP',':m'),
     Signal(SIM.PV,'PV',':m'),
     Signal(DV.Signal,'DV',':m'),
