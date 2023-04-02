@@ -74,15 +74,15 @@ def Leadlag(MV,Kp,Tlead,Tlag,Ts,PV,PVInit=0,method='EBD'):
         K = Ts/Tlag
         if len(PV) == 0:
             PV.append(PVInit)
-        else: # MV[k+1] is MV[-1] and MV[k] is MV[-2]
+        else: 
             if method == 'EBD':
-                PV.append((1/(1+K))*PV[-1] + (K*K/(1+K))*((1+Tlead/Ts)*MV[-1]- (Tlead/Ts)*MV[-2]))
+                PV.append((1/(1+K))*PV[-1] + (K*Kp/(1+K))*((1+Tlead/Ts)*MV[-1]- (Tlead/Ts)*MV[-2]))
             elif method == 'EFD':
-                PV.append((1-K)*PV[-1] + (K*K)*((Tlead/Ts)*MV[-1] +(1-(Tlead/Ts))*MV[-2]))
+                PV.append((1-K)*PV[-1] + (K*Kp)*((Tlead/Ts)*MV[-1] +(1-(Tlead/Ts))*MV[-2]))
             elif method == 'TRAP':
                 pass          
             else:
-                PV.append((1/(1+K))*PV[-1] + (K*K/(1+K))*((1+Tlead/Ts)*MV[-1]- (Tlead/Ts)*MV[-2]))
+                PV.append((1/(1+K))*PV[-1] + (K*Kp/(1+K))*((1+Tlead/Ts)*MV[-1]- (Tlead/Ts)*MV[-2]))
     else:
         PV.append(Kp*MV[-1])
 #-----------------------------------     
@@ -327,6 +327,11 @@ def Margins(P,C,omega, Show = True):
         ax_phase.set_ylim([np.max([ph_min, -200]), ph_max])
         ax_phase.set_ylabel(r'Phase $\angle P$ [°]')
         ax_phase.legend(loc='best')
+        print("gain: ",np.around(-gain[phase_180])," dB")
+        print("phase: ",np.around(180+phase[gain_0]),"°")
+   
     else:
+        
+        
         return Ls
     
